@@ -192,13 +192,27 @@ abstract class Node extends Object implements \Concrete\Core\Permission\ObjectIn
         return $nodeArray;
     }
 
-    public function selectChildrenNodesByID($nodeID)
+    /**
+     * Recursively searches for a children node and marks it as selected.
+     *
+     * @param $nodeID - nodeID of the children to be selected
+     * @param $loadMissingChildren - if set to true, it will fetch, as needed, the children 
+     * of the current node, that have not been loaded yet
+     *
+     * @return JsonResponse
+     */
+    public function selectChildrenNodesByID($nodeID, $loadMissingChildren = false)
     {
         if ($this->getTreeNodeID() == $nodeID) {
             $this->treeNodeIsSelected = true;
         } else {
             foreach ($this->getChildNodes() as $childnode) {
-                $childnode->selectChildrenNodesByID($nodeID);
+
+                if( $loadMissingChildren && !$childnode->getChildNodesLoaded() ) {
+                    $childnode->populateDirectChildrenOnly();
+                }
+
+                $childnode->selectChildrenNodesByID($nodeID, $populateMissingChildren);
             }
         }
     }
